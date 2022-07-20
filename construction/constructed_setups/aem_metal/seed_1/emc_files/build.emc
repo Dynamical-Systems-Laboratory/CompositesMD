@@ -1,0 +1,341 @@
+(* EMC: Script *)
+
+(* Created by emc_setup.pl v4.1, August 1, 2021
+   on Sat Dec 31 19:05:36 EST 2016 *)
+
+(* define variables *)
+
+variables	= {
+  seed		-> -1,
+  ntotal	-> 15100,
+  fshape	-> 1.5,
+  output	-> "dpd",
+  field		-> "dpd/general",
+  location1	-> "../../field/",
+
+  nav		-> 1,
+  temperature	-> 1,
+  radius	-> 1,
+  nrelax	-> 100,
+  weight_nonbond -> 0.01,
+  weight_bond	-> 0.01,
+  weight_focus	-> 1,
+  cutoff	-> 1,
+  charge_cutoff	-> 3,
+  kappa		-> 1,
+
+  density1	-> 0.1,
+  density2	-> 0.1,
+  lprevious	-> 0,
+  lphase	-> 0,
+
+  f_poly	-> 82353.7848,
+  f_water	-> 38800.42900,
+  f_pt		-> 189000.0,
+
+  chem_ngroup	-> "[C-0.0874]([H+0.1483])([H+0.1483])([N-0.3888]([H+0.3534])([H+0.3534])[H+0.3534])[C-0.1925]([H+0.1051])([H+0.1051])[C-0.1467]([H+0.0967])([H+0.0967])[C-0.1533]([H+0.1045])([H+0.1045])[C-0.1507]([H+0.0852])([H+0.0852])[C-0.1216]*([c-0.0954]3[c-0.1095]([ch+0.1397])[c-0.1195]([ch+0.1426])[c+0.0019]([c-0.0496]2[c-0.1176]([ch+0.1308])[c-0.1240]([ch+0.1377])[c-0.0048]([c-0.0433]1[c-0.1180]([ch+0.1268])[c-0.1299]([ch+0.1353])[c-0.1163]*[c-0.1285]([ch+0.1374])[c-0.1121]1([ch+0.1322]))[c-0.1215]([ch+0.1382])[c-0.1137]2([ch+0.1322]))[c-0.1258]([ch+0.1351])[c-0.1173]3([ch+0.1244]))[C+0.3932]([F-0.1422])([F-0.1422])([F-0.1422]).[Cl-1.0]",
+  chem_tgroup	-> "*[H+1.3355]",
+  chem_water	-> "[WH+0.4238][WO-0.8476][WH+0.4238]",
+  chem_pt	-> "P"
+};
+
+output		= {
+  debug		-> false,
+  exit		-> true,
+  info		-> true,
+  warning	-> true
+};
+
+(* define force field *)
+
+field		= {
+  id		-> dpd/general,
+  mode		-> dpd,
+  name		-> location1+field+".prm",
+  compress	-> false,
+  torsion   -> empty,
+  improper   -> empty
+};
+
+(* define groups *)
+
+groups		= {
+  group		-> {
+    id		-> ngroup, depth -> 8, chemistry -> chem_ngroup,
+    connects	-> {
+      {source	-> $end1, destination -> {ngroup, $end2}},
+      {source	-> $end1, destination -> {tgroup, $end1}},
+      {source	-> $end2, destination -> {ngroup, $end1}},
+      {source	-> $end2, destination -> {tgroup, $end1}}
+    }
+  },
+  group		-> {
+    id		-> tgroup, depth -> 8, chemistry -> chem_tgroup,
+    connects	-> {
+      {source	-> $end1, destination -> {ngroup, $end2}},
+      {source	-> $end1, destination -> {ngroup, $end1}}
+    }
+  },
+  group		-> {
+    id		-> water,
+    depth	-> 8,
+    chemistry	-> chem_water
+  },
+  group		-> {
+    id		-> pt,
+    depth	-> 8,
+    chemistry	-> chem_pt
+  }
+};
+
+field		= {
+  mode		-> apply,
+  check		-> {
+    atomistic	-> true,
+    charge	-> true
+  },
+  debug		-> false
+};
+
+(* determine simulation sizing *)
+
+variables	= {
+
+  (* lengths *)
+
+  lg_ngroup	-> nsites(ngroup),
+  lg_tgroup	-> nsites(tgroup),
+  lg_water	-> nsites(water),
+  lg_pt		-> nsites(pt),
+  norm_poly	-> 1,
+
+  l_poly	-> (10*lg_ngroup+2*lg_tgroup)*1/norm_poly,
+  l_water	-> lg_water,
+  norm_water	-> 1,
+  l_pt		-> lg_pt,
+  norm_pt	-> 1,
+
+  (* masses *)
+
+  mg_ngroup	-> mass(ngroup),
+  mg_tgroup	-> mass(tgroup),
+  mg_water	-> mass(water),
+  mg_pt		-> mass(pt),
+
+  norm_poly	-> 1,
+
+  m_poly	-> (10*mg_ngroup+2*mg_tgroup)*1/norm_poly,
+  m_water	-> mg_water,
+  norm_water	-> 1,
+  m_pt		-> mg_pt,
+  norm_pt	-> 1,
+
+  (* mass fractions *)
+
+  f_poly	-> f_poly*l_poly/m_poly,
+  f_water	-> f_water*l_water/m_water,
+  f_pt		-> f_pt*l_pt/m_pt,
+
+  (* normalization *)
+
+  norm		-> f_poly+f_water+f_pt,
+
+  f_poly	-> f_poly/norm,
+  f_water	-> f_water/norm,
+  f_pt		-> f_pt/norm,
+
+  (* sizing *)
+
+  n_poly	-> int(f_poly*ntotal/l_poly+0.5),
+  n_water	-> int(f_water*ntotal/l_water+0.5),
+  n_pt		-> int(f_pt*ntotal/l_pt+0.5),
+
+
+  (* system sizing *)
+
+  ntotal	-> 0,
+  mtotal	-> 0
+};
+
+(* define interactions *)
+
+simulation	= {
+  units		-> {
+    permittivity -> 0.2,
+    seed	-> seed
+  },
+  types		-> {
+    coulomb	-> {
+      charge	-> {active -> true, k -> kappa, cutoff -> charge_cutoff}
+    }
+  }
+};
+
+(* clusters phase 1 *)
+
+clusters	= {
+  progress	-> none,
+  polymer	-> {
+    id		-> poly, system -> main, type -> block,
+    n		-> int(1*n_poly/norm_poly+0.5),
+    groups	-> {ngroup, tgroup},
+    weights	-> {1, 1},
+    nrepeat	-> {10, 2}
+  },
+  cluster	-> {
+    id		-> water, system -> main, group -> water, n -> n_water}
+};
+
+field		= {
+  mode		-> apply,
+  check		-> {
+    atomistic	-> true,
+    charge	-> true
+  },
+  debug		-> false
+};
+
+(* build phase 1 *)
+
+variables	= {
+  nphase1	-> ntotal()-ntotal,
+  mphase1	-> mtotal()-mtotal,
+  vphase1	-> nphase1/density1,
+  lbox		-> (vphase1/fshape)^(1/3),
+  lphase1	-> fshape*lbox,
+  lxx		-> lphase1,
+  lyy		-> lbox,
+  lzz		-> lbox,
+  lzy		-> 0,
+  lzx		-> 0,
+  lyx		-> 0,
+  lphase	-> lphase1,
+  ntotal	-> nphase1,
+  mtotal	-> mphase1,
+  vtotal	-> vphase1
+};
+
+build		= {
+  system	-> {
+    id		-> main,
+    split	-> false,
+    geometry	-> {xx -> lxx, yy -> lyy, zz -> lzz,
+		    zy -> lzy, zx -> lzx, yx -> lyx},
+    temperature	-> temperature,
+    flag	-> {charge -> true, geometry -> true, map -> true, pbc -> true}
+  },
+  select	-> {
+    progress	-> list,
+    frequency	-> 1,
+    name	-> "error",
+    order	-> random,
+    cluster	-> {poly, water},
+    relax	-> {ncycles -> nrelax, radius -> radius},
+    grow	-> {
+      method	-> energetic,
+      check	-> all,
+      nbonded	-> 20,
+      ntrials	-> 20,
+      niterations -> 1000,
+      theta	-> 0,
+      weight	-> {
+	bonded	-> weight_bond, nonbonded -> weight_nonbond,
+	focus	-> weight_focus}
+    }
+  }
+};
+
+force		= {style -> none, message -> nkt};
+force		= {style -> init, message -> nkt};
+
+(* clusters phase 2 *)
+
+clusters	= {
+  progress	-> none,
+  cluster	-> {
+    id		-> pt, system -> main, group -> pt, n -> n_pt}
+};
+
+field		= {
+  mode		-> apply,
+  check		-> {
+    atomistic	-> true,
+    charge	-> true
+  },
+  debug		-> false
+};
+
+(* build phase 2 *)
+
+variables	= {
+  nphase2	-> ntotal()-ntotal,
+  mphase2	-> mtotal()-mtotal,
+  vphase2	-> nphase2/density2,
+  lprevious	-> lphase,
+  lphase2	-> vphase2/lbox^2,
+  lxx		-> lxx+lphase2,
+  lphase	-> lphase+lphase2,
+  ntotal	-> ntotal+nphase2,
+  mtotal	-> mtotal+mphase2,
+  vtotal	-> vtotal+vphase2
+};
+
+build		= {
+  system	-> {
+    id		-> main,
+    split	-> false,
+    geometry	-> {xx -> lxx, yy -> lyy, zz -> lzz,
+		    zy -> lzy, zx -> lzx, yx -> lyx},
+    temperature	-> temperature,
+    flag	-> {charge -> true, geometry -> true, map -> true, pbc -> true}
+  },
+  select	-> {
+    progress	-> list,
+    frequency	-> 1,
+    name	-> "error",
+    order	-> random,
+    cluster	-> {pt},
+    relax	-> {ncycles -> nrelax, radius -> radius},
+    grow	-> {
+      method	-> energetic,
+      check	-> all,
+      nbonded	-> 20,
+      ntrials	-> 20,
+      niterations -> 1000,
+      theta	-> 0,
+      weight	-> {
+	bonded	-> weight_bond, nonbonded -> weight_nonbond,
+	focus	-> weight_focus},
+      exclude	-> {
+	shape	-> cuboid, type -> absolute, mode -> soft,
+	h	-> {xx -> lxx-lphase2, yy -> lyy, zz -> lzz,
+		    zy -> lzy, zx -> lzx, yx -> lyx}
+
+      }
+    }
+  }
+};
+
+force		= {style -> none, message -> nkt};
+force		= {style -> init, message -> nkt};
+
+(* LAMMPS profile variables *)
+
+variables	= {
+  nl_poly	-> nclusters(clusters -> poly)
+};
+
+(* storage *)
+
+put		= {name -> output, compress -> true};
+
+pdb		= {name -> output, compress -> true, extend -> false,
+		   forcefield -> dpd, detect -> false, hexadecimal -> false,
+		   unwrap -> true, pbc -> true, atom -> index, residue -> index,
+		   segment -> index, rank -> false, vdw -> false, cut -> false,
+		   fixed -> true, rigid -> true, connectivity -> false,
+		   parameters -> false};
+
+lammps		= {name -> output, mode -> put, forcefield -> dpd,
+		   units->real, parameters -> true, types -> false, unwrap -> true,
+		   charges -> true, ewald -> true, cross -> true};

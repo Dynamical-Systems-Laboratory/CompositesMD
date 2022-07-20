@@ -1,0 +1,54 @@
+#!/usr/bin/env emc_setup.pl
+
+# Options
+
+ITEM		OPTIONS
+
+project		dpd
+units		real
+field		dpd/general
+phases      poly water + pt
+auto		true
+ntotal		7910
+density 	g/cc
+density		0.1	
+mass 		true
+replace		true
+build_dir	.
+
+ITEM		END
+
+# Groups
+
+ITEM		GROUPS
+
+ngroup *C(F)(F)C(F)(F)*, 1,ngroup:2
+# Connect on first and second C
+ngroup [C-0.0874]([H+0.1483])([H+0.1483])([N-0.3888]([H+0.3534])([H+0.3534])[H+0.3534])[C-0.1925]([H+0.1051])([H+0.1051])[C-0.1467]([H+0.0967])([H+0.0967])[C-0.1533]([H+0.1045])([H+0.1045])[C-0.1507]([H+0.0852])([H+0.0852])[C-0.1216]*([c3-0.0954][c-0.1095]([ch+0.1397])[c-0.1195]([ch+0.1426])[c+0.0019]([c2-0.0496][c-0.1176]([ch+0.1308])[c-0.1240]([ch+0.1377])[c-0.0048]([c1-0.0433][c-0.1180]([ch+0.1268])[c-0.1299]([ch+0.1353])[c-0.1163]*[c-0.1285]([ch+0.1374])[c1-0.1121]([ch+0.1322]))[c-0.1215]([ch+0.1382])[c2-0.1137]([ch+0.1322]))[c-0.1258]([ch+0.1351])[c3-0.1173]([ch+0.1244]))[C+0.3932]([F-0.1422])([F-0.1422])([F-0.1422]).[Cl-], 1,ngroup:2, 2,ngroup:1
+
+tgroup *[H+1.3355], 1,ngroup:1, 1,ngroup:2
+
+water HOH	
+pt P
+
+ITEM		END
+
+# Clusters
+
+ITEM		CLUSTERS
+
+poly	block	82353.7848
+water	water	54480.42900	
+pt  pt  189000.0
+
+ITEM		END
+
+# Polymers
+
+ITEM		POLYMERS
+
+poly 
+1 ngroup,10,tgroup,2
+
+ITEM		END
+

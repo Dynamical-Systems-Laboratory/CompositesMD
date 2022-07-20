@@ -1,0 +1,60 @@
+# File containing information on partial charges of 
+# all atom types involed in the Nafion simulation
+
+# OPLS-AA Charges from LigParGen
+# Except for water taken from EMC-OPLS-AA
+
+# Each entry represents a combintation of atoms as given by EMC shortcuts
+# The combinationi-tag includes all bonds that the atom is forming  
+# The sequence is irrelevant, each distinguishable atom is separated by
+# a "#", e.g. c,c#c,f#c,s is the same as c,f#c,c#c,s
+# -------> The atoms in a bond are listed in ALPHABETICAL ORDER
+#
+# Fluorine atoms have special treatment since their partial charge
+# depends on the whole surroundings for better accuracy (it is not that
+# much of a difference though). So fluorine atoms of a given group are 
+# marked as group_tag//c,f
+
+# Note that cl symbol stands for the third oxygen in SO3- group
+
+# Nafion
+
+o=,s#o=,s#c,s#cl,s	 1.27870000  	# S in -C-SO3- 
+o=,s			-0.57650000	# O in -SO3-
+cl,s 			-0.57650000	# O in -SO3-
+c,c#c,f#c,f#c,s		-0.17210000	# C between -SO3- and CF2 ether group
+c,c#c,f#c,f#c,s//c,f 	-0.10730000	# F in C group above
+c,c#c,oc#c,f#c,f 	 0.32840000	# C in ether/CF2 near SO3-
+c,c#c,oc#c,f#c,f//c,f 	-0.12690000	# F in C group above
+c,f#c,oc#c,c#c,c	 0.18410000  	# C in ether group, branched with a -CF3
+c,f#c,oc#c,c#c,c//c,f	-0.07080000	# F in the group above
+c,c#c,f#c,f#c,f		 0.35320000	# C in -CF3 branched group
+c,c#c,f#c,f#c,f//c,f	-0.13100000	# F in the above group
+c,c#c,f#c,f#c,oc	 0.37460000	# C in upper ether group of the side chain
+c,c#c,f#c,f#c,oc//c,f	-0.07800000	# F in the above group
+c,oc#c,f#c,c#c,c	 0.19910000	# C in CF bridge
+c,oc#c,f#c,c#c,c//c,f	-0.08510000	# F in the above group
+c,c#c,f#c,f#c,f		 0.34600000	# C in -CF3
+c,c#c,f#c,f#c,f//c,f	-0.09890000	# F in the above group
+
+# Approximate value for -C-CF2-C-
+# I manually adjust (by less than 10%) these following
+# 3 values so that the total is about expected 
+
+c,c#c,c#c,f#c,f		 0.16000000	# C in -C-CF2-C- group
+c,c#c,c#c,f#c,f//c,f	-0.080000000	# F in the above group
+
+# and ether group
+c,oc#c,oc		-0.317	        # O in the ether group
+	
+# Water (LAMMPS - SPC water model)
+
+hw,o*#hw,o*		-0.8476		# O in water
+hw,o*			 0.4238		# H in water
+
+# Sodium ion
+na+			+1.000		# Na+
+
+# Hydronium ion
+oh*	-0.248 # O in H3O+
+hhw 0.416	# H in H3O+

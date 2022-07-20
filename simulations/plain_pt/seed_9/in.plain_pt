@@ -1,0 +1,228 @@
+#
+# Nafion and a piece of platinum 
+#
+
+#
+# General settings
+#
+
+units		real
+atom_style	full 
+
+#
+# Variable definitions
+#
+
+# Paths and file names
+variable	project		index	"nafion"						# project name
+variable	source		index	../../../construction/constructed_setups/nafion_metal/seed_1	# data directory
+variable	params		index	../../../construction/constructed_setups/nafion_metal/seed_1	# parameter directory
+variable 	data_file	index 	${params}/dpd.data 					# initial data file
+
+# System properties
+variable	sys_temp	index	300		# system temperature, K
+variable	an_temp		index	600		# annealing temperature, K
+variable 	sys_press	index	1		# system pressure, atm	
+variable	tdamp		index	100		# temperature damping
+variable	pdamp		index	100		# pressure damping
+
+# Simulation settings
+variable	cutoff		index	10.0		# standard cutoff
+variable	charge_cutoff	index	10.0	# charge cutoff
+variable	precision	index	0.001		# kspace precision
+variable	vseed		index	1654791185	# velocity seed
+
+# Energy minimization settings
+variable 	etol       	index   0.0		# unitless stopping tolerance for energy
+variable 	ftol       	index   1.0e-8		# stopping tolerance for force, Kcal/mol
+variable	maxiter    	index   100000		# max number of iterations
+variable 	maxeval    	index   100000		# max number of force/energy evaluations
+
+# Times and time steps
+variable	dtthermo	index	1000			# time step for thermo output
+variable	timestep	index	1			# integration time step
+variable	vmd_step	equal	500000		# time step for vmd xyz movie saving 
+variable	img_step	equal	500000		# time step for image saving
+variable	atom_step_pre	index	50000			# time step for atom information dumping before target dump time
+variable	atom_step	index	1000			# time step for atom information dumping during target dump time
+
+#
+# Interaction potential definition
+#
+
+pair_style	lj/cut/coul/long ${cutoff} ${charge_cutoff}
+bond_style 	harmonic
+angle_style	harmonic
+special_bonds	lj/coul 0 0 0.5
+dihedral_style 	opls
+read_data 	${data_file}
+include 	${params}/dpd.params
+
+
+#
+# Integration conditions
+#
+
+timestep 	${timestep}
+kspace_style 	pppm		${precision}
+
+#
+# Delete placeholders and add FCC platinum
+#
+
+group platinum type 7
+delete_atoms group platinum 
+# Optionally shorten the empty space 
+#run 0
+#change_box all x scale 0.8
+
+
+# Replicate the membrane
+#replicate 2 2 2 
+
+lattice fcc 3.92 origin 0.0 0.0 0.0 orient x 1 0 0
+region slab block 0.0 7.0 INF INF INF INF  
+create_atoms 7 region slab
+
+#
+# Output setup
+#
+
+# VMD movie
+dump vmd_movie all xyz ${vmd_step} nafion.xyz
+dump_modify vmd_movie element C F O S O Na Pt H O 
+
+# LAMMPS images
+dump lmp_img all image ${img_step} nafion_*.ppm type type
+dump_modify lmp_img element C F O S O Na Pt H O 
+
+# Atom information DUMP file for pre-collection period
+dump lmp_pre_dump all custom ${atom_step_pre} pre_nafion.d id type x y z  
+
+#
+# 1) Equilibration
+#
+
+# Print average values ever dtthermo steps
+thermo_style 	custom step time density temp pe ke etotal press
+thermo		${dtthermo}
+
+# Run energy minimization - 0K (check) and optionally 1 atm pressure
+minimize ${etol} ${ftol} ${maxiter} ${maxeval}
+
+
+# Random initial velocity 
+velocity	all create ${sys_temp} ${vseed} &
+		dist gaussian rot yes mom yes sum yes
+
+#
+# Water - make molecules rigid
+#
+
+group water type 8 9
+fix wrig water shake 0.0001 20 0 b 6 a 11 
+
+#
+# 2) NVT ensemble for 0.2 ns
+#
+
+fix nvt_1 all nvt temp ${sys_temp} ${sys_temp} ${tdamp}
+run 200000
+unfix nvt_1
+
+#
+# 3) Annealing  - 5 repetitions
+#
+
+# Below is a lammps loop that
+# will execute 5 times
+variable ij loop 5
+label loop
+
+# i) Heat up to 600K in 50 ps
+fix an_nvt_1 all nvt temp ${sys_temp} ${an_temp} ${tdamp}
+run 50000
+unfix an_nvt_1
+
+# ii) Maintian 600K for 50 ps
+fix an_nvt_2 all nvt temp ${an_temp} ${an_temp} ${tdamp}
+run 50000
+unfix an_nvt_2
+
+# iii) Cool down to 300K in 50 ps
+fix an_nvt_3 all nvt temp ${an_temp} ${sys_temp} ${tdamp}
+run 50000
+unfix an_nvt_3
+
+next ij
+jump SELF loop
+
+write_restart	annealing.restart
+
+#
+# 4) NVT ensemble for 0.2 ns at 300 K
+#
+
+fix nvt_2 all nvt temp ${sys_temp} ${sys_temp} ${tdamp}
+run 200000
+unfix nvt_2
+
+write_restart	first_nvt.restart
+
+#
+# 5) NPT for 4 ns 
+#
+
+# With pre-data collection settings
+fix npt_1 all npt temp ${sys_temp} ${sys_temp} ${tdamp} &
+		  aniso ${sys_press} ${sys_press} ${pdamp}
+run 4000000
+unfix npt_1
+
+#
+# Stresses per atom (times volume)
+#
+
+compute AtStr all stress/atom NULL
+
+# Individual stress components
+compute AtStrKe all stress/atom NULL ke
+compute AtStrVirial all stress/atom NULL virial
+ 
+# 
+# Energy
+#
+
+compute AtPe all pe/atom 
+compute AtKe all ke/atom 
+
+# With target data collection settings
+undump lmp_pre_dump
+# Atom information DUMP file for collection period
+dump lmp_dump all custom ${atom_step} nafion.d id type x y z vx vy vz c_AtStr[1] c_AtStr[2] c_AtStr[3] c_AtStr[4] c_AtStr[5] c_AtStr[6] c_AtStrKe[1] c_AtStrKe[2] c_AtStrKe[3] c_AtStrVirial[1] c_AtStrVirial[2] c_AtStrVirial[3] c_AtPe c_AtKe
+
+#
+# NVT - 3 ns production run
+#
+
+fix nvt_fin all nvt temp ${sys_temp} ${sys_temp} ${tdamp}
+
+# For saving
+variable now equal time
+
+run 3000000 every 500000 "write_restart intermediate_nvt_time_${now}_fs.restart"
+unfix nvt_fin
+
+#
+# Remove other fixes
+#
+
+unfix wrig
+
+#
+# Save final state
+#
+
+write_restart	${project}.restart
+
+

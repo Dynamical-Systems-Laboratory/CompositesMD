@@ -1,0 +1,92 @@
+# LAMMPS parameters created by EMC v9.4.4, build Aug 20 2021 07:52:44
+# Pair Coeffs
+
+# For bromide
+# pair_coeff	 2  2 dpd  0.47       3.47  # Cl,Cl
+
+pair_coeff	 1 1 0.066	  3.5000000  # C,C
+pair_coeff	 2 2 0.10    4.40  # CLO,CLO
+pair_coeff	 3 3 0.060 	  2.9000000  # F,F
+pair_coeff	 4 4 0.0300 	  2.5000  # H,H
+pair_coeff	 5 5 0.1700	  3.2500  # N,N
+pair_coeff	 6  6    7.80    	2.845	   # p,p
+pair_coeff	 7 7 0.0300 	  2.5000  # WH,WH
+pair_coeff	 8 8 0.15540    3.16557  # WO,WO
+pair_coeff	 9 9 0.0700     3.5500  # c,c
+pair_coeff	10 10 0.0300    2.4200  # ch,ch
+
+# Bond Coeffs
+
+bond_coeff	 1   268.00   1.5290  # C,C
+bond_coeff	 2   367.00   1.3600  # C,F
+bond_coeff	 3   340.00   1.0900  # C,H
+bond_coeff	 4   367.00   1.4710  # C,N
+bond_coeff	 5   317.00   1.5100  # C,c
+bond_coeff	 6   434.00   1.0100  # H,N
+bond_coeff	 7   367.00   1.0800  # H,c
+bond_coeff	 8   1000.00      1.0  # WH,WO
+bond_coeff	 9   469.00   1.4000  # c,c
+bond_coeff	10   367.00   1.0800  # c,ch
+
+# Angle Coeffs
+
+angle_coeff	 1    58.35   112.70  # C,C,C
+angle_coeff	 2    50.000  109.50  # C,C,F
+angle_coeff	 3    37.50   110.70  # C,C,H
+angle_coeff	 4    80.00   111.20  # C,C,N
+angle_coeff	 5    63.00   114.00  # C,C,c
+angle_coeff	 6    32.15   107.64  # C,N,H
+angle_coeff	 7    70.00   120.00  # C,c,c
+angle_coeff	 8    77.00   109.10  # F,C,F
+angle_coeff	 9    33.00   107.80  # H,C,H
+angle_coeff	10    35.00   109.50  # H,C,N
+angle_coeff	11    35.00   120.00  # H,C,c
+angle_coeff	12    43.60   109.50  # H,N,H
+angle_coeff	13    35.00   120.00  # H,c,c
+angle_coeff	14    100.0	  109.5  # WH,WO,WH
+angle_coeff	15    70.00   120.00  # c,C,c
+angle_coeff	16    63.00   120.00  # c,c,c
+angle_coeff	17    35.00   120.00  # c,c,ch
+
+# Dihedral Coeffs
+
+dihedral_coeff	 1    0.000      7.250      0.000      0.000  # C,C,C,C
+dihedral_coeff	 2    0.00000    0.00000    0.00000    0.00000  # C,C,C,F
+dihedral_coeff	 3    0.000      7.250      0.000      0.000  # C,C,C,H
+dihedral_coeff	 4    2.732     -0.229      0.485      0.000  # C,C,C,N
+dihedral_coeff	 5    1.300     -0.200      0.200      0.000  # C,C,C,c
+dihedral_coeff	 6    0.000      0.000      0.347      0.000  # C,C,N,H
+dihedral_coeff	 7    0.00000    0.00000    0.00000        0.00000  # C,C,c,c
+dihedral_coeff	 8    0.000      7.250      0.000      0.000  # C,c,c,c
+dihedral_coeff	 9    0.000      7.250      0.000      0.000  # C,c,c,ch
+dihedral_coeff	10    0.000      0.000      0.360      0.000  # F,C,C,H
+dihedral_coeff	11    0.00000    0.00000    0.00000    0.00000  # F,C,C,c
+dihedral_coeff	12    0.000      0.000      0.300      0.000  # H,C,C,H
+dihedral_coeff	13    0.000      0.000      0.384      0.000  # H,C,C,N
+dihedral_coeff	14    0.000      0.000      0.462      0.000  # H,C,C,c
+dihedral_coeff	15    0.00000    0.00000    0.00000        0.00000  # H,C,N,H
+dihedral_coeff	16    0.00000    0.00000    0.00000    0.00000  # H,C,c,c
+dihedral_coeff	17    0.00000    0.00000    0.00000    0.00000  # H,c,c,c
+dihedral_coeff	18    0.000      7.250      0.000      0.000  # H,c,c,ch
+dihedral_coeff	19    0.00000    0.00000    0.00000        0.00000  # c,C,c,c
+dihedral_coeff	20    0.000      2.170      0.000      0.000  # c,c,c,c
+dihedral_coeff	21    0.000      7.250      0.000      0.000  # c,c,c,ch
+dihedral_coeff	22    0.000      7.250      0.000      0.000  # ch,c,c,ch
+
+# Improper Coeffs
+
+improper_coeff	 1    0.00000    -1 	2  # C,C,C,H
+improper_coeff	 2    0.00000    -1 	2  # C,C,C,c
+improper_coeff	 3    0.00000    -1 	1  # C,C,F,F
+improper_coeff	 4    0.00000    -1 1  # C,C,H,H
+improper_coeff	 5    0.00000    -1 	2  # C,C,H,N
+improper_coeff	 6    0.00000    -1 	2  # C,C,H,c
+improper_coeff	 7    2.50000    -1 	2  # C,C,c,c
+improper_coeff	 8    0.00000    -1 1  # C,F,F,F
+improper_coeff	 9    0.00000    -1		2  # C,H,H,N
+improper_coeff	 10    0.00000    -1		2  # N,C,H,H
+improper_coeff	 11    0.00000    -1		2  # N,H,H,H
+improper_coeff	 12    2.50000    -1 	2  # c,C,c,c
+improper_coeff	13    2.50000     -1 	2 # c,H,c,c
+improper_coeff	14    2.50000     -1 	2  # c,c,c,c
+improper_coeff	15    2.50000     -1 	2  # c,c,c,ch
